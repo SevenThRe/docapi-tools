@@ -1,0 +1,79 @@
+{
+  "cover": {
+    "company": "株式会社エフエム",
+    "project": "Socia2026",
+    "system": "Sociaポータル",
+    "function_name": "(共通)現職エリア",
+    "function_id": "gensyokuArea",
+    "author": "ISI李",
+    "create_date": "2024-11-15",
+    "update_date": "2026-01-19",
+    "update_author": "ISI孫"
+  },
+  "overview": {
+    "content": "この機能は従業員の現職エリア情報を表示・管理するためのUI設計書です。"
+  },
+  "screens": [
+    {
+      "name": "現職エリア",
+      "objects": [
+        {
+          "no": 1,
+          "name": "エリアタイトル",
+          "type": "ラベル",
+          "attributes": [],
+          "actions": [
+            "画面初期表示時に表示される"
+          ],
+          "display_controls": [
+            "常時表示する"
+          ],
+          "error_definitions": []
+        },
+        {
+          "no": 2,
+          "name": "エリア名入力",
+          "type": "テキスト入力",
+          "attributes": [
+            "最大入力文字数：100"
+          ],
+          "actions": [
+            "ユーザーがテキストを入力する時、リアルタイムで入力値を反映する"
+          ],
+          "display_controls": [
+            "編集モードの場合、表示する"
+          ],
+          "error_definitions": [
+            {
+              "condition": "入力文字数が100文字を超えた場合",
+              "message_id": "MSG_00001",
+              "object_no": "2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "processing": {
+    "apis": [
+      {
+        "name": "エリア情報表示",
+        "id": "gensyokuArea/showBlock",
+        "request_params": [
+          {
+            "name": "社員ID（syainId）",
+            "description": "表示対象社員のID"
+          }
+        ],
+        "response_description": "APIから取得した現職エリア情報を画面に表示する",
+        "response_params": [
+          {
+            "screen_item": "エリアタイトル",
+            "response_param": "areaTitle",
+            "note": "nullの場合、「未設定」と表示"
+          }
+        ]
+      }
+    ]
+  }
+}

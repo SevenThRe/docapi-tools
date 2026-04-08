@@ -1,0 +1,86 @@
+{
+  "_comment": "最小構成サンプル。cover・api_info・request_params・response_params の4セクションだけで基本的な設計書を生成できます。",
+
+  "cover": {
+    "_comment": "表紙シートの情報。company/project/system は configs/project_config.json のデフォルト値で補完されるため省略可。",
+    "api_name":    "承認申請一覧取得",
+    "api_id":      "api/aplAprList/show",
+    "author":      "ISI李",
+    "create_date": "2026-02-25"
+  },
+
+  "api_info": {
+    "_comment": "リクエストシートの先頭行。method と url は最低限記述してください。",
+    "method":      "GET",
+    "url":         "/api/aplAprList/show",
+    "description": "承認待ちの申請一覧を取得する"
+  },
+
+  "request_params": [
+    {
+      "_comment": "リクエストパラメーター。depth:0 がトップレベル、depth:1 が入れ子（配列の中身等）。",
+      "item_name":   "syainId",
+      "required":    "○",
+      "data_type":   "String",
+      "data_length": "10",
+      "description": "社員ID",
+      "example":     "EMP001"
+    },
+    {
+      "item_name":   "pageNo",
+      "required":    "△",
+      "data_type":   "Integer",
+      "data_length": "-",
+      "description": "取得ページ番号（省略時は1）",
+      "example":     "1"
+    }
+  ],
+
+  "response_params": [
+    {
+      "_comment": "レスポンスパラメーター。配列の中身は depth:1 にして親の直後に並べる。",
+      "item_name":   "aplList",
+      "required":    "○",
+      "data_type":   "Array",
+      "data_length": "-",
+      "description": "申請一覧",
+      "depth":       0
+    },
+    {
+      "item_name":   "aplId",
+      "required":    "○",
+      "data_type":   "String",
+      "data_length": "20",
+      "description": "申請ID",
+      "depth":       1
+    },
+    {
+      "item_name":   "aplStatus",
+      "required":    "○",
+      "data_type":   "String",
+      "data_length": "2",
+      "description": "申請ステータス（00:未承認 01:承認済 02:却下）",
+      "depth":       1
+    },
+    {
+      "item_name":   "totalCount",
+      "required":    "○",
+      "data_type":   "Integer",
+      "data_length": "-",
+      "description": "総件数",
+      "depth":       0
+    }
+  ],
+
+  "overview": {
+    "_comment": "処理概要シート。summary が機能説明文、flow_steps がフローチャートになります。省略するとシートは空白になります。",
+    "summary": "申請者の社員IDを受け取り、承認待ちの申請一覧をDBから取得して返却する。",
+    "flow_steps": [
+      {"label": "開始",                   "type": "terminal"},
+      {"label": "リクエストパラメーター検証", "type": "process"},
+      {"label": "申請テーブルからデータ取得", "type": "process"},
+      {"label": "ページング処理",            "type": "process"},
+      {"label": "終了",                   "type": "terminal"}
+    ]
+  }
+}

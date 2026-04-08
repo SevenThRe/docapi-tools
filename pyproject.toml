@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docapi-tools"
+version = "0.1.0"
+description = "Deterministic API spec tooling for Japanese Excel-based design workbooks."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "openpyxl>=3.1.2",
+]
+
+[project.scripts]
+docapi = "scripts.docapi_cli:main"
+
+[tool.setuptools]
+packages = ["scripts", "scripts.providers"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+scripts = ["../assets/*.xlsx", "../configs/*.json", "../data/*.sqlite"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

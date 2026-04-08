@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.fminc.socia.aplAprList.mapper.AplAprListMapper">
+  <resultMap id="applicationResultMap" type="java.util.HashMap">
+    <result property="syainApplicationsList" column="syain_applications_list" />
+    <result property="status" column="status" />
+  </resultMap>
+
+  <select id="selectApplications" parameterType="java.util.Map" resultMap="applicationResultMap">
+    SELECT
+      #{functionId} AS syain_applications_list,
+      #{menuId} AS status
+  </select>
+</mapper>

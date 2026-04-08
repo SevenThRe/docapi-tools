@@ -1,0 +1,8 @@
+{
+  "provider": "none",
+  "ollama": {
+    "base_url": "http://127.0.0.1:11434",
+    "model": "llama3.1",
+    "timeout_sec": 30
+  }
+}

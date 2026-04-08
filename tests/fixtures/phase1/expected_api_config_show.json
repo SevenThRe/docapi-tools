@@ -1,0 +1,134 @@
+{
+  "cover": {
+    "company": "株式会社エフエム",
+    "project": "SociaX",
+    "system": "",
+    "api_name": "申請詳細を表示する",
+    "api_id": "aplAprList/show",
+    "author": "isi",
+    "create_date": "2026-04-07",
+    "update_date": "2026-04-07",
+    "update_author": "isi"
+  },
+  "api_info": {
+    "method": "POST",
+    "url": "/api/aplAprList/show",
+    "description": "申請詳細を表示する"
+  },
+  "request_params": [
+    {
+      "item_name": "functionId",
+      "required": "△",
+      "data_type": "String",
+      "data_length": "-",
+      "description": "リクエストパラメーター（functionId）",
+      "example": "",
+      "depth": 0
+    },
+    {
+      "item_name": "menuId",
+      "required": "△",
+      "data_type": "String",
+      "data_length": "-",
+      "description": "リクエストパラメーター（menuId）",
+      "example": "",
+      "depth": 0
+    }
+  ],
+  "response_params": [
+    {
+      "item_name": "syainApplicationsList",
+      "required": "△",
+      "data_type": "Array",
+      "data_length": "-",
+      "description": "レスポンス項目（syainApplicationsList）",
+      "example": "",
+      "depth": 0
+    },
+    {
+      "item_name": "status",
+      "required": "△",
+      "data_type": "String",
+      "data_length": "-",
+      "description": "レスポンス項目（status）",
+      "example": "",
+      "depth": 0
+    }
+  ],
+  "overview": {
+    "summary": "申請詳細を表示するためのAPI。",
+    "flow_steps": [
+      {
+        "label": "開始",
+        "type": "terminal"
+      },
+      {
+        "label": "リクエスト受信",
+        "type": "process"
+      },
+      {
+        "label": "パラメーター確認",
+        "type": "process"
+      },
+      {
+        "label": "内部処理実行",
+        "type": "process"
+      },
+      {
+        "label": "レスポンス返却",
+        "type": "process"
+      },
+      {
+        "label": "終了",
+        "type": "terminal"
+      }
+    ]
+  },
+  "sequence": {
+    "client_component": "呼出元画面",
+    "api_title": "API処理（申請詳細を表示する）",
+    "steps": [
+      {
+        "type": "request",
+        "step_no": 1,
+        "trigger": "API呼出",
+        "communication": "POST /api/aplAprList/show",
+        "description": "入力された条件を受け取り、内部処理を開始する。",
+        "params": [
+          "functionId",
+          "menuId"
+        ],
+        "details": [],
+        "db_accesses": []
+      },
+      {
+        "type": "response",
+        "trigger": "処理結果反映",
+        "status": "httpレスポンス:200",
+        "description": "処理結果を呼出元へ返却する。",
+        "params": [
+          "syainApplicationsList",
+          "status"
+        ]
+      }
+    ]
+  },
+  "processing_detail": {
+    "steps": [
+      {
+        "title": "リクエスト受付",
+        "content": [
+          "POST /api/aplAprList/show を受け付ける。",
+          "入力項目: functionId, menuId"
+        ]
+      },
+      {
+        "title": "レスポンス生成",
+        "content": [
+          "取得結果をAPIレスポンス形式へ整形する。",
+          "返却項目: syainApplicationsList, status"
+        ]
+      }
+    ]
+  }
+}

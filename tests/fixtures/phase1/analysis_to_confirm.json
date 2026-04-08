@@ -1,0 +1,20 @@
+{
+  "selected_api": {
+    "method": "GET",
+    "path": "/api/aplAprList/status",
+    "summary": "status to confirm"
+  },
+  "analysis": {
+    "request_params": [],
+    "response_params": [
+      {
+        "name": "status",
+        "source": "mybatis_resultmap:AplAprListMapper.xml",
+        "confidence": "HIGH"
+      }
+    ],
+    "uncertain": [
+      "warning: source evidence differs"
+    ]
+  }
+}

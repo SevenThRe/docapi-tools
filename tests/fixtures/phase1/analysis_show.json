@@ -1,0 +1,34 @@
+{
+  "selected_api": {
+    "method": "POST",
+    "path": "/api/aplAprList/show",
+    "summary": "申請詳細を表示する"
+  },
+  "analysis": {
+    "request_params": [
+      {
+        "name": "functionId",
+        "source": "mybatis_xml:AplAprListMapper.xml",
+        "confidence": "HIGH"
+      },
+      {
+        "name": "menuId",
+        "source": "mybatis_xml:AplAprListMapper.xml",
+        "confidence": "HIGH"
+      }
+    ],
+    "response_params": [
+      {
+        "name": "syainApplicationsList",
+        "source": "mybatis_resultmap:AplAprListMapper.xml",
+        "confidence": "HIGH"
+      },
+      {
+        "name": "status",
+        "source": "mybatis_resultmap:AplAprListMapper.xml",
+        "confidence": "HIGH"
+      }
+    ],
+    "uncertain": []
+  }
+}

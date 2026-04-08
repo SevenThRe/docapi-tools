@@ -1,0 +1,189 @@
+{
+  "cover": {
+    "company": "テスト会社",
+    "project": "テストプロジェクト",
+    "system": "テストシステム",
+    "function_name": "現職エリア",
+    "function_id": "gensyokuarea",
+    "author": "${username}",
+    "create_date": "2026-01-01",
+    "update_date": "2026-02-25",
+    "update_author": "${username}"
+  },
+  "overview": {
+    "description": "呼出先機能により、現職エリアの表示モードを確定し、現職エリアに表示する各項目情報を設定されたレイアウトより表示する\n・社員台帳、または勤務表(1人のみ)の場合、ブロックモードで表示する\n・発令、または勤務表(複数人)の場合、一覧モードで表示する",
+    "screens": [
+      {
+        "name": "現職エリア（gensyokuarea）",
+        "descriptions": [
+          "ブロックモードの場合、現職エリア項目を取得して、画面に表示する。顔写真表示区分により顔写真の表示・非表示を制御する",
+          "一覧モードの場合、1人・複数人を切替して、社員コード、氏名及び発令項目を表示する"
+        ]
+      },
+      {
+        "name": "経歴モーダル（history）",
+        "descriptions": [
+          "履歴が切れている単位ごとにデータを表示する"
+        ]
+      }
+    ],
+    "flow_description": "・社員コード検索の流れを以下に示す。\n1. 呼出元から社員コードリスト・機能ID・設定データを受け取る\n2. APIを呼び出して現職エリア表示用データを取得する\n3. 表示モードに応じてブロック/一覧表示を切り替える"
+  },
+  "screen_layouts": [
+    {
+      "template_sheet": "外部-画面レイアウト-現職エリア",
+      "output_name": "外部-画面レイアウト-現職エリア"
+    },
+    {
+      "template_sheet": "外部-画面レイアウト-経歴モーダル",
+      "output_name": "外部-画面レイアウト-経歴モーダル"
+    }
+  ],
+  "screens": [
+    {
+      "name": "現職エリア",
+      "target_sheet": "外部-画面レイアウト-現職エリア",
+      "screen_id": "gensyokuarea",
+      "screen_name": "(共通)現職エリア",
+      "initial_display": {
+        "actions": [
+          "呼出先機能により、ブロックモードまたは一覧モードで現職エリアを表示する"
+        ],
+        "api": [
+          "ブロックモード：現職エリアの表示API(id：gensyokuArea/showBlock)を呼出し、現職エリア情報を取得する",
+          "一覧モード：現職エリアの表示API(id：gensyokuArea/showLine)を呼出し、現職エリア情報を取得する"
+        ]
+      },
+      "objects": [
+        {
+          "no": 1,
+          "name": "社員切替",
+          "type": "アイコン",
+          "attributes": ["cursor：pointer"],
+          "actions": [
+            "上アイコンを押下する時、表示している社員の直前社員へ切替して表示する",
+            "先頭の社員の場合、末尾の社員へ切り替える",
+            "下アイコンを押下する時、表示している社員の直後社員へ切替して表示する",
+            "末尾の社員の場合、先頭の社員へ切り替える"
+          ],
+          "display_controls": [
+            "一覧モードで複数人の場合は非活性とする"
+          ],
+          "api": "現職エリアの表示API(id：gensyokuArea/showBlock 或いは gensyokuArea/showLine)を呼出し、社員情報を取得する。",
+          "sub_items": [
+            {
+              "label": "切替範囲",
+              "definitions": [
+                {"item": "動作", "value": "ブロックモードの場合、サイドバーの全て社員"},
+                {"item": "動作", "value": "一覧モードの場合、サイドバーで選択された社員"}
+              ]
+            }
+          ],
+          "error_definitions": []
+        },
+        {
+          "no": 2,
+          "name": "社員コード検索",
+          "type": "エリア",
+          "attributes": [],
+          "actions": [],
+          "display_controls": [],
+          "sub_items": [
+            {
+              "label": "社員コード",
+              "definitions": [
+                {"item": "種類", "value": "テキスト"},
+                {"item": "動作", "value": "社員コードを入力する"},
+                {"item": "表示制御", "value": "一覧モードの複数人の場合は非活性とする"}
+              ]
+            },
+            {
+              "label": "検索アイコン",
+              "definitions": [
+                {"item": "種類", "value": "アイコン"},
+                {"item": "属性", "value": "cursor：pointer"},
+                {"item": "動作", "value": "入力する対象社員を検索して表示する"}
+              ],
+              "error_definitions": [
+                {
+                  "header": "アイコン押下時のエラーチェック",
+                  "condition": "社員コードに該当する社員がいない場合",
+                  "message_id": "MSG_00089",
+                  "object_no": ""
+                }
+              ],
+              "display_controls": [
+                "一覧モードの複数人の場合は非活性とする"
+              ],
+              "api": "現職エリアの表示API(id：gensyokuArea/showBlock 或いは gensyokuArea/showLine)を呼出し"
+            }
+          ],
+          "error_definitions": []
+        },
+        {
+          "no": 3,
+          "name": "経歴",
+          "type": "ボタン",
+          "attributes": [],
+          "actions": [
+            "押下すると、経歴モーダル画面をポップアップする"
+          ],
+          "display_controls": [
+            "一覧モードの複数人の場合は非活性とする"
+          ],
+          "error_definitions": []
+        }
+      ]
+    }
+  ],
+  "processing": {
+    "component_name": "現職エリア（gensyokuarea）",
+    "apis": [
+      {
+        "action_type": "初期表示",
+        "action_number": null,
+        "name": "(共通)現職エリア-表示",
+        "request_params": [
+          { "name": "社員コードリスト", "description": "表示対象社員の社員コードリスト" },
+          { "name": "機能ID", "description": "アクティブメニューの機能ID" },
+          { "name": "設定データ", "description": "サイドバーの設定メニュー内容" }
+        ],
+        "response_description": "レスポンスデータを画面に表示する",
+        "display_mode": "■ブロック表示",
+        "response_params": [
+          { "screen_item": "項目名", "response_param": "現職エリアのタイトル", "note": "※現職エリアの空白フラグが「1」の場合、表示しない" },
+          { "screen_item": "項目値", "response_param": "現職エリアの項目値", "note": "※現職エリアの空白フラグが「1」の場合、表示しない" },
+          { "screen_item": "表示システム", "response_param": "システム情報の製品名" },
+          { "screen_item": "顔写真", "response_param": "顔写真表示区分=systemConstant.SS0022.FACE_PHOTOの場合、社員顔写真表示" },
+          { "screen_item": "社員存在しないMsg", "response_param": "「datanone」がnullではない場合のみ表示" }
+        ],
+        "notes": [
+          "※レスポンスパラメーター「機能利用フラグ」がnoneの場合、現職エリアを表示しない",
+          "※対象社員自分の顔写真がない場合、デフォルト画像を表示する",
+          "※社員存在しないMsgが表示される場合、現職エリア、メイン画面の内容が検索前へ戻る"
+        ]
+      },
+      {
+        "action_type": "社員切替",
+        "action_number": 1,
+        "name": "(共通)現職エリア-表示",
+        "request_params": [
+          { "name": "社員コードリスト", "description": "表示対象社員の社員コードリスト" },
+          { "name": "機能ID", "description": "アクティブメニューの機能ID" },
+          { "name": "設定データ", "description": "サイドバーの設定メニュー内容" }
+        ],
+        "response_description": "レスポンスデータを画面に表示する",
+        "display_mode": "■ブロック表示",
+        "response_params": [
+          { "screen_item": "項目名", "response_param": "現職エリアのタイトル", "note": "※現職エリアの空白フラグが「1」の場合、表示しない" },
+          { "screen_item": "項目値", "response_param": "現職エリアの項目値", "note": "※現職エリアの空白フラグが「1」の場合、表示しない" },
+          { "screen_item": "表示システム", "response_param": "システム情報の製品名" },
+          { "screen_item": "顔写真", "response_param": "顔写真表示区分=systemConstant.SS0022.FACE_PHOTOの場合、社員顔写真表示" }
+        ],
+        "notes": [
+          "※レスポンスパラメーター「機能利用フラグ」がnoneの場合、現職エリアを表示しない"
+        ]
+      }
+    ]
+  }
+}

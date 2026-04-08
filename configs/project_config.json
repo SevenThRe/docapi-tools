@@ -1,0 +1,32 @@
+{
+  "$schema": "project_config",
+  "$description": "プロジェクト共通設定 - UI設計書/API設計書の共通メタデータ",
+
+  "company": {
+    "name": "株式会社エフエム",
+    "copyright": "©株式会社エフエム"
+  },
+
+  "project": {
+    "name": "SociaX",
+    "system_name": "",
+    "version": "1.0"
+  },
+
+  "author": {
+    "name": "isi",
+    "department": ""
+  },
+
+  "defaults": {
+    "font_family": "Kosugi",
+    "font_size_data": 9,
+    "font_size_meta": 8,
+    "font_size_title": 20
+  },
+
+  "template_paths": {
+    "ui_spec": "assets/template_clean.xlsx",
+    "api_spec": "assets/api_template_clean.xlsx"
+  }
+}

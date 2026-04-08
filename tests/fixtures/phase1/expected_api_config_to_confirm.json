@@ -1,0 +1,102 @@
+{
+  "cover": {
+    "company": "株式会社エフエム",
+    "project": "SociaX",
+    "system": "",
+    "api_name": "status to confirm",
+    "api_id": "aplAprList/status",
+    "author": "isi",
+    "create_date": "2026-04-07",
+    "update_date": "2026-04-07",
+    "update_author": "isi"
+  },
+  "api_info": {
+    "method": "GET",
+    "url": "/api/aplAprList/status",
+    "description": "status to confirm"
+  },
+  "request_params": [],
+  "response_params": [
+    {
+      "item_name": "status",
+      "required": "△",
+      "data_type": "String",
+      "data_length": "-",
+      "description": "レスポンス項目（status）",
+      "example": "",
+      "depth": 0
+    }
+  ],
+  "overview": {
+    "summary": "status to confirmためのAPI。",
+    "flow_steps": [
+      {
+        "label": "開始",
+        "type": "terminal"
+      },
+      {
+        "label": "リクエスト受信",
+        "type": "process"
+      },
+      {
+        "label": "パラメーター確認",
+        "type": "process"
+      },
+      {
+        "label": "内部処理実行",
+        "type": "process"
+      },
+      {
+        "label": "レスポンス返却",
+        "type": "process"
+      },
+      {
+        "label": "終了",
+        "type": "terminal"
+      }
+    ]
+  },
+  "sequence": {
+    "client_component": "呼出元画面",
+    "api_title": "API処理（status to confirm）",
+    "steps": [
+      {
+        "type": "request",
+        "step_no": 1,
+        "trigger": "API呼出",
+        "communication": "GET /api/aplAprList/status",
+        "description": "入力された条件を受け取り、内部処理を開始する。",
+        "params": [],
+        "details": [],
+        "db_accesses": []
+      },
+      {
+        "type": "response",
+        "trigger": "処理結果反映",
+        "status": "httpレスポンス:200",
+        "description": "処理結果を呼出元へ返却する。",
+        "params": [
+          "status"
+        ]
+      }
+    ]
+  },
+  "processing_detail": {
+    "steps": [
+      {
+        "title": "リクエスト受付",
+        "content": [
+          "GET /api/aplAprList/status を受け付ける。",
+          "入力項目: なし"
+        ]
+      },
+      {
+        "title": "レスポンス生成",
+        "content": [
+          "取得結果をAPIレスポンス形式へ整形する。",
+          "返却項目: status"
+        ]
+      }
+    ]
+  }
+}
