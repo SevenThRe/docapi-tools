@@ -33,7 +33,7 @@ Current limitations:
 On Windows, the preferred install flow is the managed-runtime installer:
 
 ```powershell
-irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex
+irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/install-docapi.ps1 | iex
 ```
 
 That installer does not require a preinstalled Python. It bootstraps `uv`, provisions a managed runtime, installs `docapi-tools`, and creates a user-local `docapi` command shim.
@@ -41,7 +41,7 @@ That installer does not require a preinstalled Python. It bootstraps `uv`, provi
 If you want the manual Python-based wheel flow instead:
 
 ```powershell
-python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/docapi_tools-0.1.3-py3-none-any.whl
+python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/docapi_tools-0.1.4-py3-none-any.whl
 ```
 
 If you are working from source instead:
@@ -76,7 +76,7 @@ docapi health
 To check for a packaged update:
 
 ```powershell
-docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/release-manifest.json --check
+docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/release-manifest.json --check
 ```
 
 ## How To Specify Scan Scope

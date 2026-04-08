@@ -7,7 +7,7 @@
 From the source tree:
 
 ```powershell
-python -m scripts.docapi_cli release --output-dir dist/release --base-url https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3
+python -m scripts.docapi_cli release --output-dir dist/release --base-url https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4
 ```
 
 This produces:
@@ -25,7 +25,7 @@ The generated installer scripts now support a no-Python Windows bootstrap by dow
 For Windows users without Python, the preferred entrypoint is:
 
 ```powershell
-irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex
+irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/install-docapi.ps1 | iex
 ```
 
 Run that in the current PowerShell session if you want `docapi` to become available immediately in the same window.
@@ -33,7 +33,7 @@ Run that in the current PowerShell session if you want `docapi` to become availa
 From a published wheel URL:
 
 ```powershell
-python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/docapi_tools-0.1.3-py3-none-any.whl
+python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/docapi_tools-0.1.4-py3-none-any.whl
 ```
 
 Then verify:
@@ -48,13 +48,13 @@ docapi health
 If a release manifest is published:
 
 ```powershell
-docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/release-manifest.json
+docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/release-manifest.json
 ```
 
 To only check whether an update exists:
 
 ```powershell
-docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/release-manifest.json --check
+docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.4/release-manifest.json --check
 ```
 
 ## User Config Preservation

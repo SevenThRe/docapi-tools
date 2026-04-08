@@ -277,9 +277,9 @@ function Write-CommandShims([hashtable]$Paths) {
 "@
   Set-Content -Path $Paths.CmdShim -Value $cmdShim -Encoding Ascii
 
-  $psShim = @"
-& "$PSScriptRoot\\..\\runtime\\Scripts\\docapi.exe" @args
-"@
+  $psShim = @'
+& "$PSScriptRoot/../runtime/Scripts/docapi.exe" @args
+'@
   Set-Content -Path $Paths.PsShim -Value $psShim -Encoding Utf8
 }
 
