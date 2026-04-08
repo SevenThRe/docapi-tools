@@ -236,7 +236,15 @@ function Install-DocApi([string]$PythonExe, [string]$InstallSpec, [bool]$DoUpgra
     New-Item -ItemType Directory -Force -Path $paths.DownloadDir | Out-Null
     $downloadPath = Join-Path $paths.DownloadDir $downloadName
     try {
-      Invoke-WebRequest -UseBasicParsing -Uri $InstallSpec -OutFile $downloadPath -TimeoutSec 600
+      $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+      if ($curl) {
+        & $curl.Source "-L" "--retry" "5" "--retry-all-errors" "--connect-timeout" "30" "-o" $downloadPath $InstallSpec
+        if ($LASTEXITCODE -ne 0) {
+          throw "curl download failed."
+        }
+      } else {
+        Invoke-WebRequest -UseBasicParsing -Uri $InstallSpec -OutFile $downloadPath -TimeoutSec 600
+      }
     } catch {
       if (Get-Command Start-BitsTransfer -ErrorAction SilentlyContinue) {
         Start-BitsTransfer -Source $InstallSpec -Destination $downloadPath
