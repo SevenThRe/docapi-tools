@@ -648,7 +648,7 @@ def build_scan_artifact(
         "tool": {
             "name": "docapi",
             "command": "scan",
-            "version": "0.1.0",
+            "version": "0.1.1",
         },
         "inputs": {
             "mode": target_mode,

@@ -13,6 +13,10 @@ from urllib.request import urlopen
 from scripts.runtime_support import find_source_project_root, load_pyproject_version
 
 
+DEFAULT_BOOTSTRAP_PYTHON = "3.13"
+DEFAULT_BOOTSTRAP_UV_URL = "https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip"
+
+
 def _timestamp() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -57,11 +61,16 @@ def load_release_manifest(source: str | Path) -> tuple[dict[str, Any], str]:
 
 
 def resolve_install_spec(manifest: dict[str, Any], manifest_source: str | None = None) -> str:
+    wheel_name = str(manifest.get("wheel") or "").strip()
+    if manifest_source and not _is_url(manifest_source) and wheel_name:
+        local_candidate = Path(manifest_source).resolve().parent / wheel_name
+        if local_candidate.exists():
+            return str(local_candidate)
+
     explicit = str(manifest.get("install_spec") or "").strip()
     if explicit:
         return explicit
 
-    wheel_name = str(manifest.get("wheel") or "").strip()
     if not wheel_name:
         raise ValueError("Release manifest is missing both `install_spec` and `wheel`.")
 
@@ -101,57 +110,223 @@ def _sha256(path: Path) -> str:
 def _render_install_script(manifest_filename: str, embedded_manifest_url: str | None, *, upgrade: bool) -> str:
     manifest_url = embedded_manifest_url or ""
     upgrade_literal = "$true" if upgrade else "$false"
-    return f"""param(
-[string]$ManifestUrl = "{manifest_url}",
-[string]$Spec = ""
+    template = """param(
+[string]$ManifestUrl = "__MANIFEST_URL__",
+[string]$Spec = "",
+[string]$InstallRoot = "",
+[string]$PythonVersion = "",
+[switch]$SkipPathUpdate
 )
 
 $ErrorActionPreference = "Stop"
-$upgrade = {upgrade_literal}
-$python = (Get-Command python -ErrorAction Stop).Source
-$scriptDir = if ($MyInvocation.MyCommand.Path) {{ Split-Path -Parent $MyInvocation.MyCommand.Path }} else {{ $PWD.Path }}
+$upgrade = __UPGRADE_LITERAL__
+$scriptDir = if ($MyInvocation.MyCommand.Path) { Split-Path -Parent $MyInvocation.MyCommand.Path } else { $PWD.Path }
 
-if (-not $Spec) {{
-  $manifestPath = Join-Path $scriptDir "{manifest_filename}"
-  if (Test-Path $manifestPath) {{
-    $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
-  }} elseif ($ManifestUrl) {{
-    $manifest = Invoke-RestMethod -UseBasicParsing $ManifestUrl
-  }} else {{
-    throw "No release manifest was provided."
-  }}
+function Get-Manifest {
+  $manifestPath = Join-Path $scriptDir "__MANIFEST_FILENAME__"
+  if (Test-Path $manifestPath) {
+    return Get-Content $manifestPath -Raw | ConvertFrom-Json
+  }
+  if ($ManifestUrl) {
+    return Invoke-RestMethod -UseBasicParsing $ManifestUrl
+  }
+  throw "No release manifest was provided."
+}
 
-  if ($manifest.install_spec) {{
-    $Spec = [string]$manifest.install_spec
-  }} elseif ($manifest.wheel) {{
-    if ($ManifestUrl) {{
+function Resolve-InstallSpec($Manifest) {
+  if ($Spec) {
+    return $Spec
+  }
+  if ($Manifest.wheel) {
+    $localWheel = Join-Path $scriptDir ([string]$Manifest.wheel)
+    if (Test-Path $localWheel) {
+      return $localWheel
+    }
+  }
+  if ($Manifest.install_spec) {
+    return [string]$Manifest.install_spec
+  }
+  if ($Manifest.wheel) {
+    if ($ManifestUrl) {
       $manifestUri = [System.Uri]$ManifestUrl
       $baseUri = New-Object System.Uri($manifestUri, "./")
-      $Spec = (New-Object System.Uri($baseUri, [string]$manifest.wheel)).AbsoluteUri
-    }} else {{
-      $Spec = Join-Path $scriptDir ([string]$manifest.wheel)
-    }}
-  }} else {{
-    throw "Release manifest is missing install_spec/wheel."
-  }}
-}}
+      return (New-Object System.Uri($baseUri, [string]$Manifest.wheel)).AbsoluteUri
+    }
+    return Join-Path $scriptDir ([string]$Manifest.wheel)
+  }
+  throw "Release manifest is missing install_spec/wheel."
+}
 
-$args = @("-m", "pip", "install")
-if ($upgrade) {{
-  $args += "--upgrade"
-}}
-$args += $Spec
+function Get-ManagedPaths([string]$BaseDir) {
+  return @{
+    BaseDir = $BaseDir
+    RuntimeDir = Join-Path $BaseDir "runtime"
+    RuntimePython = Join-Path $BaseDir "runtime\\Scripts\\python.exe"
+    RuntimeDocApi = Join-Path $BaseDir "runtime\\Scripts\\docapi.exe"
+    BinDir = Join-Path $BaseDir "bin"
+    CmdShim = Join-Path $BaseDir "bin\\docapi.cmd"
+    PsShim = Join-Path $BaseDir "bin\\docapi.ps1"
+    ToolsDir = Join-Path $BaseDir "tools"
+    UvDir = Join-Path $BaseDir "tools\\uv"
+    UvExe = Join-Path $BaseDir "tools\\uv\\uv.exe"
+    DownloadDir = Join-Path $BaseDir "downloads"
+    UvZip = Join-Path $BaseDir "downloads\\uv-windows.zip"
+  }
+}
 
-& $python @args
+function Get-UvExecutable([hashtable]$Paths, [string]$UvUrl) {
+  if (Test-Path $Paths.UvExe) {
+    return $Paths.UvExe
+  }
+
+  $systemUv = Get-Command uv -ErrorAction SilentlyContinue
+  if ($systemUv) {
+    return $systemUv.Source
+  }
+
+  New-Item -ItemType Directory -Force -Path $Paths.UvDir | Out-Null
+  New-Item -ItemType Directory -Force -Path $Paths.DownloadDir | Out-Null
+  Invoke-WebRequest -UseBasicParsing -Uri $UvUrl -OutFile $Paths.UvZip
+  if (Test-Path $Paths.UvExe) {
+    Remove-Item -Force $Paths.UvExe
+  }
+  Expand-Archive -LiteralPath $Paths.UvZip -DestinationPath $Paths.UvDir -Force
+  if (-not (Test-Path $Paths.UvExe)) {
+    throw "uv bootstrap failed: $($Paths.UvExe) was not created."
+  }
+  return $Paths.UvExe
+}
+
+function Ensure-RuntimePython([hashtable]$Paths, [string]$RequestedVersion, [string]$UvUrl) {
+  if (Test-Path $Paths.RuntimePython) {
+    return $Paths.RuntimePython
+  }
+
+  $uv = Get-UvExecutable -Paths $Paths -UvUrl $UvUrl
+  if ($RequestedVersion) {
+    & $uv python install $RequestedVersion
+    if ($LASTEXITCODE -ne 0) {
+      throw "uv python install failed."
+    }
+  }
+
+  $uvArgs = @("venv", "--seed")
+  if ($RequestedVersion) {
+    $uvArgs += @("--python", $RequestedVersion)
+  }
+  $uvArgs += $Paths.RuntimeDir
+  & $uv @uvArgs
+  if ($LASTEXITCODE -ne 0) {
+    throw "uv venv creation failed."
+  }
+
+  if (-not (Test-Path $Paths.RuntimePython)) {
+    throw "Runtime Python was not created at $($Paths.RuntimePython)."
+  }
+  return $Paths.RuntimePython
+}
+
+function Install-DocApi([string]$PythonExe, [string]$InstallSpec, [bool]$DoUpgrade) {
+  $args = @("-m", "pip", "install")
+  if ($DoUpgrade) {
+    $args += "--upgrade"
+  } else {
+    $args += "--upgrade"
+  }
+  $args += $InstallSpec
+  & $PythonExe @args
+  if ($LASTEXITCODE -ne 0) {
+    throw "docapi installation failed."
+  }
+}
+
+function Write-CommandShims([hashtable]$Paths) {
+  New-Item -ItemType Directory -Force -Path $Paths.BinDir | Out-Null
+
+  $cmdShim = @"
+@echo off
+"%~dp0..\\runtime\\Scripts\\docapi.exe" %*
+"@
+  Set-Content -Path $Paths.CmdShim -Value $cmdShim -Encoding Ascii
+
+  $psShim = @"
+& "$PSScriptRoot\\..\\runtime\\Scripts\\docapi.exe" @args
+"@
+  Set-Content -Path $Paths.PsShim -Value $psShim -Encoding Utf8
+}
+
+function Ensure-UserPath([string]$BinDir, [bool]$ShouldSkip) {
+  if ($ShouldSkip) {
+    return $false
+  }
+
+  $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+  $entries = @()
+  if ($currentUserPath) {
+    $entries = @($currentUserPath.Split(';') | Where-Object { $_ })
+  }
+  if ($entries -contains $BinDir) {
+    $env:Path = "$BinDir;$env:Path"
+    return $false
+  }
+
+  $updatedEntries = @($entries + $BinDir)
+  $updatedPath = ($updatedEntries -join ';')
+  [Environment]::SetEnvironmentVariable("Path", $updatedPath, "User")
+  $env:Path = "$BinDir;$env:Path"
+  return $true
+}
+
+$manifest = Get-Manifest
+$resolvedSpec = Resolve-InstallSpec -Manifest $manifest
+if (-not $InstallRoot) {
+  $InstallRoot = Join-Path $HOME ".docapi"
+}
+if (-not $PythonVersion) {
+  $PythonVersion = [string]$manifest.bootstrap.python_version
+}
+$uvUrl = [string]$manifest.bootstrap.uv_url
+if (-not $uvUrl) {
+  throw "Release manifest is missing bootstrap.uv_url."
+}
+
+$paths = Get-ManagedPaths -BaseDir $InstallRoot
+New-Item -ItemType Directory -Force -Path $paths.BaseDir | Out-Null
+$pythonExe = Ensure-RuntimePython -Paths $paths -RequestedVersion $PythonVersion -UvUrl $uvUrl
+Install-DocApi -PythonExe $pythonExe -InstallSpec $resolvedSpec -DoUpgrade $upgrade
+Write-CommandShims -Paths $paths
+$pathChanged = Ensure-UserPath -BinDir $paths.BinDir -ShouldSkip $SkipPathUpdate
+
+Write-Host ""
+Write-Host "docapi install complete"
+Write-Host "install_root: $InstallRoot"
+Write-Host "runtime_python: $pythonExe"
+Write-Host "command_shim: $($paths.CmdShim)"
+if ($pathChanged) {
+  Write-Host "user PATH updated: $($paths.BinDir)"
+  Write-Host "Open a new terminal before using `docapi`."
+} else {
+  Write-Host "bin_dir: $($paths.BinDir)"
+}
+Write-Host ""
+Write-Host "Quick check:"
+Write-Host "  docapi --version"
 """
+    return (
+        template.replace("__MANIFEST_URL__", manifest_url)
+        .replace("__UPGRADE_LITERAL__", upgrade_literal)
+        .replace("__MANIFEST_FILENAME__", manifest_filename)
+    )
 
 
 def _render_release_notes(manifest: dict[str, Any]) -> str:
     install_hint = manifest.get("install_spec") or f".\\{manifest['wheel']}"
     update_hint = manifest.get("manifest_url") or ".\\release-manifest.json"
+    script_hint = manifest.get("install_script_url") or ".\\install-docapi.ps1"
     return (
         f"docapi release {manifest['version']}\n\n"
         "Install examples:\n"
+        f"- powershell -ExecutionPolicy Bypass -c \"irm {script_hint} | iex\"\n"
         f"- pip install {install_hint}\n"
         f"- powershell -ExecutionPolicy Bypass -File .\\install-docapi.ps1\n\n"
         "Update examples:\n"
@@ -198,6 +373,13 @@ def build_release_artifacts(
         "base_url": normalized_base_url,
         "install_spec": urljoin(normalized_base_url, wheel_path.name) if normalized_base_url else None,
         "manifest_url": urljoin(normalized_base_url, "release-manifest.json") if normalized_base_url else None,
+        "install_script_url": urljoin(normalized_base_url, "install-docapi.ps1") if normalized_base_url else None,
+        "update_script_url": urljoin(normalized_base_url, "update-docapi.ps1") if normalized_base_url else None,
+        "bootstrap": {
+            "mode": "managed-venv",
+            "python_version": DEFAULT_BOOTSTRAP_PYTHON,
+            "uv_url": DEFAULT_BOOTSTRAP_UV_URL,
+        },
     }
 
     manifest_path = release_output_dir / "release-manifest.json"

@@ -23,16 +23,25 @@ Current limitations:
 
 ## Prerequisites
 
-- Python 3.10 or newer
 - access to the backend source tree you want to scan
 - optional access to the frontend source tree if you want frontend call evidence
+- for the no-Python Windows installer, network access to the GitHub release assets
+- for the manual wheel flow, Python 3.10 or newer
 
 ## Install
 
-From a GitHub release wheel:
+On Windows, the preferred install flow is the managed-runtime installer:
 
 ```powershell
-python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.0/docapi_tools-0.1.0-py3-none-any.whl
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/install-docapi.ps1 | iex"
+```
+
+That installer does not require a preinstalled Python. It bootstraps `uv`, provisions a managed runtime, installs `docapi-tools`, and creates a user-local `docapi` command shim.
+
+If you want the manual Python-based wheel flow instead:
+
+```powershell
+python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/docapi_tools-0.1.1-py3-none-any.whl
 ```
 
 If you are working from source instead:
@@ -42,7 +51,9 @@ cd C:\path\to\docapi-tools
 python -m pip install -e .
 ```
 
-If `docapi` is not found after install, the user Scripts directory may not be on `PATH`.
+If `docapi` is not found after install, open a new terminal first. The managed-runtime installer updates the user `PATH` with `%USERPROFILE%\.docapi\bin`.
+
+For the manual wheel flow, the user Scripts directory may not be on `PATH`.
 
 On Windows PowerShell, you can add it for the current shell:
 
@@ -63,7 +74,7 @@ docapi health
 To check for a packaged update:
 
 ```powershell
-docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.0/release-manifest.json --check
+docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/release-manifest.json --check
 ```
 
 ## How To Specify Scan Scope
@@ -199,4 +210,4 @@ What should not change:
 - No first-run setup wizard yet
 - Provider-backed enhancement still depends on the user's local provider setup
 
-Installability, GitHub-hosted wheel distribution, and self-update are now available through the Python package workflow.
+Installability, GitHub-hosted wheel distribution, managed-runtime bootstrap, and self-update are now available through the current release workflow.

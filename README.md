@@ -13,13 +13,27 @@ It is designed for teams that need auditable artifacts instead of ad-hoc AI outp
 
 ## Install
 
-Install directly from the GitHub release wheel:
+On Windows, the easiest install no longer requires a preinstalled Python runtime:
 
 ```powershell
-python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.0/docapi_tools-0.1.0-py3-none-any.whl
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/install-docapi.ps1 | iex"
 ```
 
-Then verify:
+The installer will:
+
+- bootstrap `uv` if needed
+- create a managed runtime under `%USERPROFILE%\.docapi\runtime`
+- install `docapi-tools` into that runtime
+- create a `docapi` shim under `%USERPROFILE%\.docapi\bin`
+- add `%USERPROFILE%\.docapi\bin` to the user `PATH`
+
+If you prefer the Python-based flow, the wheel URL still works:
+
+```powershell
+python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/docapi_tools-0.1.1-py3-none-any.whl
+```
+
+Then verify in a new terminal:
 
 ```powershell
 docapi --version
@@ -31,13 +45,13 @@ docapi health
 Check whether a newer release exists:
 
 ```powershell
-docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.0/release-manifest.json --check
+docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/release-manifest.json --check
 ```
 
 Apply the update:
 
 ```powershell
-docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.0/release-manifest.json
+docapi self-update --manifest https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.1/release-manifest.json
 ```
 
 ## How Users Specify Scan Scope
