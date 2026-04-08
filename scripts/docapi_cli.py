@@ -949,10 +949,37 @@ def run_release_stage(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_help_stage(args: argparse.Namespace) -> int:
+    parser = build_parser()
+    command_name = getattr(args, "topic", None)
+    if not command_name:
+        parser.print_help()
+        return 0
+
+    subparser_actions = [
+        action
+        for action in parser._actions
+        if isinstance(action, argparse._SubParsersAction)
+    ]
+    if not subparser_actions:
+        parser.error("No subcommands are registered.")
+
+    choices = subparser_actions[0].choices
+    subparser = choices.get(command_name)
+    if subparser is None:
+        parser.error(f"Unknown help topic: {command_name}")
+    subparser.print_help()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog=TOOL_NAME, description="Deterministic API documentation tooling.")
     parser.add_argument("--version", action="version", version=f"%(prog)s {TOOL_VERSION}")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    help_parser = subparsers.add_parser("help", help="Show help for docapi or a subcommand")
+    help_parser.add_argument("topic", nargs="?", help="Optional subcommand name, such as scan or generate")
+    help_parser.set_defaults(handler=run_help_stage, command_name="help")
 
     scan_parser = subparsers.add_parser("scan", help="Discover candidate APIs for an explicit backend target")
     add_common_target_arguments(scan_parser)

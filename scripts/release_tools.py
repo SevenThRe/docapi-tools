@@ -227,13 +227,33 @@ function Ensure-RuntimePython([hashtable]$Paths, [string]$RequestedVersion, [str
 }
 
 function Install-DocApi([string]$PythonExe, [string]$InstallSpec, [bool]$DoUpgrade) {
+  $resolvedInstallSpec = $InstallSpec
+  if ($InstallSpec -match '^(https?)://') {
+    $downloadName = [System.IO.Path]::GetFileName(([System.Uri]$InstallSpec).AbsolutePath)
+    if (-not $downloadName) {
+      $downloadName = "docapi-tools.whl"
+    }
+    New-Item -ItemType Directory -Force -Path $paths.DownloadDir | Out-Null
+    $downloadPath = Join-Path $paths.DownloadDir $downloadName
+    try {
+      Invoke-WebRequest -UseBasicParsing -Uri $InstallSpec -OutFile $downloadPath -TimeoutSec 600
+    } catch {
+      if (Get-Command Start-BitsTransfer -ErrorAction SilentlyContinue) {
+        Start-BitsTransfer -Source $InstallSpec -Destination $downloadPath
+      } else {
+        throw
+      }
+    }
+    $resolvedInstallSpec = $downloadPath
+  }
+
   $args = @("-m", "pip", "install")
   if ($DoUpgrade) {
     $args += "--upgrade"
   } else {
     $args += "--upgrade"
   }
-  $args += $InstallSpec
+  $args += $resolvedInstallSpec
   & $PythonExe @args
   if ($LASTEXITCODE -ne 0) {
     throw "docapi installation failed."

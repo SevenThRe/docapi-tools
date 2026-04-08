@@ -44,6 +44,22 @@ def test_docapi_health_json_reports_runtime_assets() -> None:
     assert payload["runtime_root"]
 
 
+def test_docapi_help_command_prints_root_help() -> None:
+    result = _run_docapi("help")
+    assert result.returncode == 0, result.stderr
+    assert "usage: docapi" in result.stdout
+    assert "scan" in result.stdout
+    assert "generate" in result.stdout
+
+
+def test_docapi_help_command_prints_subcommand_help() -> None:
+    result = _run_docapi("help", "scan")
+    assert result.returncode == 0, result.stderr
+    assert "usage: docapi scan" in result.stdout
+    assert "--path" in result.stdout
+    assert "--package" in result.stdout
+
+
 def test_docapi_self_update_check_reads_local_manifest(tmp_path: Path) -> None:
     manifest_path = tmp_path / "release-manifest.json"
     manifest_path.write_text(
@@ -73,12 +89,12 @@ def test_resolve_install_spec_prefers_local_wheel_for_local_manifest(tmp_path: P
     from scripts.release_tools import resolve_install_spec
 
     manifest_path = tmp_path / "release-manifest.json"
-    wheel_path = tmp_path / "docapi_tools-0.1.1-py3-none-any.whl"
+    wheel_path = tmp_path / "docapi_tools-0.1.2-py3-none-any.whl"
     wheel_path.write_bytes(b"wheel")
     manifest = {
-        "version": "0.1.1",
+        "version": "0.1.2",
         "wheel": wheel_path.name,
-        "install_spec": "https://example.com/docapi/v0.1.1/docapi_tools-0.1.1-py3-none-any.whl",
+        "install_spec": "https://example.com/docapi/v0.1.2/docapi_tools-0.1.2-py3-none-any.whl",
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -106,7 +122,7 @@ def test_build_release_artifacts_writes_manifest_and_scripts(monkeypatch, tmp_pa
     def fake_run(command, check, capture_output, text):  # noqa: ANN001
         output_dir = Path(command[command.index("-w") + 1])
         output_dir.mkdir(parents=True, exist_ok=True)
-        (output_dir / "docapi_tools-0.1.1-py3-none-any.whl").write_bytes(b"wheel-bytes")
+        (output_dir / "docapi_tools-0.1.2-py3-none-any.whl").write_bytes(b"wheel-bytes")
         return subprocess.CompletedProcess(command, 0, "ok", "")
 
     monkeypatch.setattr("scripts.release_tools.subprocess.run", fake_run)
@@ -114,7 +130,7 @@ def test_build_release_artifacts_writes_manifest_and_scripts(monkeypatch, tmp_pa
     report = build_release_artifacts(
         output_dir=tmp_path,
         project_root=PACKAGE_ROOT,
-        base_url="https://example.com/docapi/v0.1.1",
+        base_url="https://example.com/docapi/v0.1.2",
     )
 
     manifest = json.loads(Path(report["manifest_path"]).read_text(encoding="utf-8"))
@@ -122,13 +138,15 @@ def test_build_release_artifacts_writes_manifest_and_scripts(monkeypatch, tmp_pa
     update_script = Path(report["update_script"]).read_text(encoding="utf-8")
 
     assert report["status"] == "completed"
-    assert manifest["version"] == "0.1.1"
-    assert manifest["install_spec"] == "https://example.com/docapi/v0.1.1/docapi_tools-0.1.1-py3-none-any.whl"
+    assert manifest["version"] == "0.1.2"
+    assert manifest["install_spec"] == "https://example.com/docapi/v0.1.2/docapi_tools-0.1.2-py3-none-any.whl"
     assert manifest["bootstrap"]["mode"] == "managed-venv"
     assert manifest["bootstrap"]["python_version"] == "3.13"
     assert "release-manifest.json" in install_script
     assert "UV" not in install_script
     assert "uv-windows.zip" in install_script
+    assert "Invoke-WebRequest" in install_script
+    assert "Start-BitsTransfer" in install_script
     assert "docapi install complete" in install_script
     assert "docapi.cmd" in install_script
     assert "--upgrade" in update_script

@@ -9,7 +9,7 @@ from typing import Any
 
 
 DIST_NAME = "docapi-tools"
-DEFAULT_TOOL_VERSION = "0.1.1"
+DEFAULT_TOOL_VERSION = "0.1.2"
 DEFAULT_HOME_DIRNAME = ".docapi"
 
 
