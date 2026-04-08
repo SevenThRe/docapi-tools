@@ -16,7 +16,7 @@ It is designed for teams that need auditable artifacts instead of ad-hoc AI outp
 On Windows, the easiest install no longer requires a preinstalled Python runtime:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex"
+irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex
 ```
 
 The installer will:
@@ -33,7 +33,11 @@ If you prefer the Python-based flow, the wheel URL still works:
 python -m pip install https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/docapi_tools-0.1.3-py3-none-any.whl
 ```
 
-Then verify in a new terminal:
+If you ran the command above directly in your current PowerShell session, `docapi` should be available immediately.
+
+If you ran the installer from a child PowerShell process or a downloaded `.ps1` file, open a new terminal first.
+
+Then verify:
 
 ```powershell
 docapi --version

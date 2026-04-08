@@ -25,8 +25,10 @@ The generated installer scripts now support a no-Python Windows bootstrap by dow
 For Windows users without Python, the preferred entrypoint is:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex"
+irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex
 ```
+
+Run that in the current PowerShell session if you want `docapi` to become available immediately in the same window.
 
 From a published wheel URL:
 

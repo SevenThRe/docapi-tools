@@ -33,7 +33,7 @@ Current limitations:
 On Windows, the preferred install flow is the managed-runtime installer:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex"
+irm https://github.com/SevenThRe/docapi-tools/releases/download/v0.1.3/install-docapi.ps1 | iex
 ```
 
 That installer does not require a preinstalled Python. It bootstraps `uv`, provisions a managed runtime, installs `docapi-tools`, and creates a user-local `docapi` command shim.
@@ -51,7 +51,9 @@ cd C:\path\to\docapi-tools
 python -m pip install -e .
 ```
 
-If `docapi` is not found after install, open a new terminal first. The managed-runtime installer updates the user `PATH` with `%USERPROFILE%\.docapi\bin`.
+If you run that command directly in the current PowerShell session, `docapi` should be available immediately after install.
+
+If you instead launch the installer in a child PowerShell process or from a separate downloaded `.ps1` file, open a new terminal first. The managed-runtime installer updates the user `PATH` with `%USERPROFILE%\.docapi\bin`.
 
 For the manual wheel flow, the user Scripts directory may not be on `PATH`.
 
